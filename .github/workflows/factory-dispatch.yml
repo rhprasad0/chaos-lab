@@ -1,0 +1,76 @@
+name: factory-dispatch
+permissions:
+  contents: read
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  dispatch:
+    if: github.event.label.name == 'factory'
+    concurrency:
+      group: factory-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    environment: factory
+    timeout-minutes: 300
+    permissions:
+      contents: read
+      id-token: write
+      issues: write
+      pull-requests: read
+      checks: read
+      statuses: read
+      actions: read
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+      ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+      ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
+      ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
+      FACTORY_APP_CLIENT_ID: ${{ vars.FACTORY_APP_CLIENT_ID }}
+      FACTORY_GITHUB_LOGIN: ${{ vars.FACTORY_GITHUB_LOGIN }}
+      FACTORY_ALARM_APP: ${{ vars.FACTORY_ALARM_APP }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: rhprasad0/nova-toll-budget-agent
+          ref: main
+          path: tollchat
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          version: "0.12.5"
+          checksum: "68a509da24b06b4223a1c0175fb5eb5bc79342b76cbeff0cfe51ac3f5b17b6b2"
+          python-version: "3.13"
+      - name: Read the lock from the state branch
+        working-directory: tollchat
+        run: |
+          git fetch --quiet --depth=1 origin factory-state
+          git show FETCH_HEAD:claude-lock.json >factory/claude-lock.json
+      - name: Start session
+        id: start
+        working-directory: tollchat
+        env:
+          FACTORY_APP_PRIVATE_KEY: ${{ secrets.FACTORY_APP_PRIVATE_KEY }}
+          REQUESTED_BY: ${{ github.event.sender.login }}
+        run: uv run --locked --script factory/dispatch.py --repo "$GH_REPO" --issue "$ISSUE_NUMBER" start --requested-by "$REQUESTED_BY"
+      - name: Watch session
+        if: ${{ !cancelled() && steps.start.outputs.session_id != '' }}
+        working-directory: tollchat
+        env:
+          FACTORY_APP_PRIVATE_KEY: ${{ secrets.FACTORY_APP_PRIVATE_KEY }}
+          SESSION_ID: ${{ steps.start.outputs.session_id }}
+          STATUS_COMMENT_ID: ${{ steps.start.outputs.status_comment_id }}
+        run: |
+          options=()
+          if [ -n "$STATUS_COMMENT_ID" ]; then options+=(--status-comment-id "$STATUS_COMMENT_ID"); fi
+          uv run --locked --script factory/dispatch.py --repo "$GH_REPO" --issue "$ISSUE_NUMBER" watch --session-id "$SESSION_ID" "${options[@]}"
+      - name: Report a failed start
+        if: failure() && steps.start.outputs.session_id == ''
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "The factory failed before it could start; see the [workflow run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
+          gh issue edit "$ISSUE_NUMBER" --remove-label factory
