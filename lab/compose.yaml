@@ -1,7 +1,5 @@
 x-spark: &spark
-  image: chaos-lab-spark:dev
-  build: .
-  pull_policy: never
+  image: ghcr.io/rhprasad0/chaos-lab/spark@sha256:40ae86ca37cb20262e8290d50310542a3ff6c2193de6663cb5b0516f4979a9fd
   volumes:
     - ${LAB_CODE:-..}:/workspace/chaos-lab:ro
     - lake:/lake

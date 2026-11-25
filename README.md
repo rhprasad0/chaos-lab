@@ -22,6 +22,9 @@ Run a command on the cluster with `bin/lab`, for example
 Inside a factory session `LAB_PROJECT` is already set; elsewhere bring a lab up with
 `docker compose -f lab/compose.yaml -p mylab up -d --wait` and set `LAB_PROJECT=mylab`.
 
+The Spark image is `lab/Dockerfile`, published to GHCR by `image.yml` when it changes on
+`main`; pin the digest it prints in `lab/compose.yaml`.
+
 ## Checks
 
 `./verify.sh` is what CI runs. It starts its own lab unless `LAB_PROJECT` is set, then runs
