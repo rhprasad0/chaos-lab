@@ -1,5 +1,6 @@
 FROM spark@sha256:d9c96395b753a3403e77b90f7b37a2ac24078cb2ae38fdc0bbcfc56cc1a35751
 
+LABEL org.opencontainers.image.source=https://github.com/rhprasad0/chaos-lab
 USER root
 ARG JDBC_VERSION=42.7.14
 ARG JDBC_SHA256=73914527305a40cce504b0d3d90b23caf565136912d607ae8ae7c5895512332c
