@@ -1,0 +1,31 @@
+name: image
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+    paths: [lab/Dockerfile]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build and push the lab Spark image
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE: ghcr.io/${{ github.repository }}/spark
+        run: |
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker build --tag "$IMAGE:$GITHUB_SHA" lab
+          docker push "$IMAGE:$GITHUB_SHA"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMAGE:$GITHUB_SHA")"
+          echo "Pin this in lab/compose.yaml: $digest" | tee -a "$GITHUB_STEP_SUMMARY"

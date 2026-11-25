@@ -3,7 +3,7 @@ x-spark: &spark
   build: .
   pull_policy: never
   volumes:
-    - ..:/workspace/chaos-lab:ro
+    - ${LAB_CODE:-..}:/workspace/chaos-lab:ro
     - lake:/lake
   environment:
     SPARK_NO_DAEMONIZE: "true"
@@ -17,9 +17,9 @@ services:
   generate:
     <<: *spark
     volumes:
-      - ..:/workspace/chaos-lab:ro
+      - ../generator:/opt/generator:ro
       - seed:/seed
-    command: ["python3", "/workspace/chaos-lab/generator/retail.py", "--seed", "${LAB_SEED:-1}", "--out", "/seed"]
+    command: ["python3", "/opt/generator/retail.py", "--seed", "${LAB_SEED:-1}", "--out", "/seed"]
     mem_limit: 512m
 
   postgres:

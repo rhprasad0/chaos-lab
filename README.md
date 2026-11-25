@@ -7,12 +7,15 @@ broken on purpose to see whether it can fix them.
 
 `lab/compose.yaml` is a single-node Spark cluster (`spark-master`, `spark-worker`) and a
 `postgres` database seeded with the retail tables from `generator/retail.py`. The same seed
-always produces the same data. Each factory run gets a fresh copy, torn down when the run ends.
+always produces the same data. Each factory work item gets a fresh lab, torn down when it ends.
+The lab itself (this compose file, `lab/init/` and the generator) comes from `main` as it was
+when the session started, so edits on a branch do not change the data a run sees.
 
 - Source: Postgres database `retail`, user `pipeline` (read-only), tables `customers`
   (one row per attribute change), `products`, `orders`, `order_items`, `payments`.
 - Lake: write Parquet under `/lake`, which the master and the worker both mount.
-- Code: the repository is mounted read-only at `/workspace/chaos-lab` in every Spark container.
+- Code: your working tree is mounted read-only at `/workspace/chaos-lab` in every Spark
+  container, so jobs always run the code as you have it now.
 
 Run a command on the cluster with `bin/lab`, for example
 `bin/lab spark-submit --master spark://spark-master:7077 /workspace/chaos-lab/jobs/x.py`.
