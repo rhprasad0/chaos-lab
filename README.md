@@ -28,4 +28,4 @@ The Spark image is `lab/Dockerfile`, published to GHCR by `image.yml` when it ch
 ## Checks
 
 `./verify.sh` is what CI runs. It starts its own lab unless `LAB_PROJECT` is set, then runs
-`tests/` on the cluster.
+`tests/` on the cluster in isolation, then the pipelines' own `pipelines/tests/`. The factory may not change `tests/`.

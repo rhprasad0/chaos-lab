@@ -9,4 +9,8 @@ if [[ -z "${LAB_PROJECT:-}" ]]; then
   docker compose -f lab/compose.yaml -p "$LAB_PROJECT" up --detach --wait --quiet-pull
 fi
 
-bin/lab python3 -m pytest -p no:cacheprovider -q /workspace/chaos-lab/tests "$@"
+pytest() { bin/lab python3 -m pytest -p no:cacheprovider -q "$@"; }
+pytest -c /dev/null --rootdir=/workspace/chaos-lab/tests --confcutdir=/workspace/chaos-lab/tests /workspace/chaos-lab/tests
+if [[ -d pipelines/tests ]]; then
+  pytest --rootdir=/workspace/chaos-lab/pipelines /workspace/chaos-lab/pipelines/tests
+fi
