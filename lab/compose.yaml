@@ -1,0 +1,66 @@
+x-spark: &spark
+  image: chaos-lab-spark:dev
+  build: .
+  pull_policy: never
+  volumes:
+    - ${LAB_CODE:-..}:/workspace/chaos-lab:ro
+    - lake:/lake
+  environment:
+    SPARK_NO_DAEMONIZE: "true"
+    PGHOST: postgres
+    PGPORT: "5432"
+    PGDATABASE: retail
+    PGUSER: pipeline
+    PGPASSWORD: pipeline
+
+services:
+  generate:
+    <<: *spark
+    volumes:
+      - ../generator:/opt/generator:ro
+      - seed:/seed
+    command: ["python3", "/opt/generator/retail.py", "--seed", "${LAB_SEED:-1}", "--out", "/seed"]
+    mem_limit: 512m
+
+  postgres:
+    image: postgres@sha256:2006493727bd5277eece187319af1ef82b4cf82cf4fc1ed00da0775b646ac2a4
+    environment:
+      POSTGRES_DB: retail
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - seed:/seed:ro
+      - ./init:/docker-entrypoint-initdb.d:ro
+    depends_on:
+      generate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "retail"]
+      interval: 2s
+      retries: 60
+    mem_limit: 512m
+
+  spark-master:
+    <<: *spark
+    command: ["spark-class", "org.apache.spark.deploy.master.Master", "--host", "spark-master"]
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080"]
+      interval: 2s
+      retries: 60
+    mem_limit: 2g
+
+  spark-worker:
+    <<: *spark
+    command: ["spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077",
+              "--cores", "2", "--memory", "2g"]
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8081"]
+      interval: 2s
+      retries: 60
+    mem_limit: 3g
+
+volumes:
+  seed:
+  lake:
