@@ -1,0 +1,200 @@
+Online Retail II workbook profile
+
+Source: s3://chaos-lab-903859731897/online-retail-ii/online_retail_II.xlsx
+S3 VersionId: e1fhzqPonf0vLGy_R_jvwK3FcCyxH_0M
+S3 LastModified: 2026-11-26T17:20:58Z
+Size in bytes: 45622278
+sha256: bcbe73b35f5b7babf197fb0cb983a11f5d9ff929078d4aa53d171b1f2df2e980
+
+Conventions: a cell is missing when it is empty. Invoice, StockCode and Customer ID are compared as text. Row counts exclude the header row.
+Revenue is Quantity x Price summed exactly (decimal arithmetic), over all rows ("with cancellations") or over rows whose Invoice does not start with C ("without cancellations").
+The stacked-workbook section treats the two sheets as one table of all their rows; rows in the overlap are counted twice there.
+
+======================================================================
+Year 2009-2010
+======================================================================
+Rows: 525461
+
+Columns and types (cell types counted among non-missing cells):
+  Invoice: integer (515252), text (10209)
+  StockCode: integer (445349), text (80112)
+  Description: text (522530), integer (3)
+  Quantity: integer (525461)
+  InvoiceDate: datetime (525461)
+  Price: decimal (519941), integer (5520)
+  Customer ID: integer (417534)
+  Country: text (525461)
+
+InvoiceDate range: 2009-12-01 07:45:00 to 2010-12-09 20:01:00
+
+Distinct values (missing excluded):
+  invoices: 28816
+  customers: 4383
+  stock codes: 4632
+  countries: 40
+
+Missing values per column:
+  Invoice: 0
+  StockCode: 0
+  Description: 2928
+  Quantity: 0
+  InvoiceDate: 0
+  Price: 0
+  Customer ID: 107927
+  Country: 0
+
+Exact duplicate rows (all 8 columns equal):
+  rows that repeat an earlier row: 6865
+  distinct rows that occur more than once: 6418
+
+Cancellations and bad values:
+  cancellation rows (Invoice starts with C): 10206
+  distinct cancellation invoices: 4592
+  rows with negative Quantity: 12326
+  rows with negative Quantity on non-cancellation invoices: 2121
+  rows with zero Quantity: 0
+  rows with Price = 0: 3687
+  rows with Price < 0: 3
+
+Top 5 countries by rows:
+  United Kingdom: 485852
+  EIRE: 9670
+  Germany: 8129
+  France: 5772
+  Netherlands: 2769
+
+Total revenue (Quantity x Price):
+  with cancellations: 9539484.63
+  without cancellations: 10169340.00
+  cancellations alone: -629855.37
+
+Month with the most distinct invoices: 2010-11 (3669)
+  next: 2010-10 (2965), 2010-05 (2418)
+
+======================================================================
+Year 2010-2011
+======================================================================
+Rows: 541910
+
+Columns and types (cell types counted among non-missing cells):
+  Invoice: integer (532619), text (9291)
+  StockCode: integer (487036), text (54874)
+  Description: text (540455), integer (1)
+  Quantity: integer (541910)
+  InvoiceDate: datetime (541910)
+  Price: decimal (537406), integer (4504)
+  Customer ID: integer (406830)
+  Country: text (541910)
+
+InvoiceDate range: 2010-12-01 08:26:00 to 2011-12-09 12:50:00
+
+Distinct values (missing excluded):
+  invoices: 25900
+  customers: 4372
+  stock codes: 4070
+  countries: 38
+
+Missing values per column:
+  Invoice: 0
+  StockCode: 0
+  Description: 1454
+  Quantity: 0
+  InvoiceDate: 0
+  Price: 0
+  Customer ID: 135080
+  Country: 0
+
+Exact duplicate rows (all 8 columns equal):
+  rows that repeat an earlier row: 5268
+  distinct rows that occur more than once: 4879
+
+Cancellations and bad values:
+  cancellation rows (Invoice starts with C): 9288
+  distinct cancellation invoices: 3836
+  rows with negative Quantity: 10624
+  rows with negative Quantity on non-cancellation invoices: 1336
+  rows with zero Quantity: 0
+  rows with Price = 0: 2515
+  rows with Price < 0: 2
+
+Top 5 countries by rows:
+  United Kingdom: 495478
+  Germany: 9495
+  France: 8558
+  EIRE: 8196
+  Spain: 2533
+
+Total revenue (Quantity x Price):
+  with cancellations: 9747765.93
+  without cancellations: 10644578.42
+  cancellations alone: -896812.49
+
+Month with the most distinct invoices: 2011-11 (3462)
+  next: 2011-10 (2637), 2011-09 (2327)
+
+======================================================================
+Workbook (both sheets stacked)
+======================================================================
+Rows: 1067371
+
+Columns and types (cell types counted among non-missing cells):
+  Invoice: integer (1047871), text (19500)
+  StockCode: integer (932385), text (134986)
+  Description: text (1062985), integer (4)
+  Quantity: integer (1067371)
+  InvoiceDate: datetime (1067371)
+  Price: decimal (1057347), integer (10024)
+  Customer ID: integer (824364)
+  Country: text (1067371)
+
+InvoiceDate range: 2009-12-01 07:45:00 to 2011-12-09 12:50:00
+
+Distinct values (missing excluded):
+  invoices: 53628
+  customers: 5942
+  stock codes: 5305
+  countries: 43
+
+Missing values per column:
+  Invoice: 0
+  StockCode: 0
+  Description: 4382
+  Quantity: 0
+  InvoiceDate: 0
+  Price: 0
+  Customer ID: 243007
+  Country: 0
+
+Exact duplicate rows (all 8 columns equal):
+  rows that repeat an earlier row: 34335
+  distinct rows that occur more than once: 32907
+
+Rows appearing in both sheets:
+  distinct row values present in both sheets: 22202
+  rows in Year 2009-2010 with a value also in Year 2010-2011: 22523
+  rows in Year 2010-2011 with a value also in Year 2009-2010: 22523
+  InvoiceDate range of shared rows: 2010-12-01T08:26:00 to 2010-12-09T20:01:00
+
+Cancellations and bad values:
+  cancellation rows (Invoice starts with C): 19494
+  distinct cancellation invoices: 8292
+  rows with negative Quantity: 22950
+  rows with negative Quantity on non-cancellation invoices: 3457
+  rows with zero Quantity: 0
+  rows with Price = 0: 6202
+  rows with Price < 0: 5
+
+Top 5 countries by rows:
+  United Kingdom: 981330
+  EIRE: 17866
+  Germany: 17624
+  France: 14330
+  Netherlands: 5140
+
+Total revenue (Quantity x Price):
+  with cancellations: 19287250.57
+  without cancellations: 20813918.43
+  cancellations alone: -1526667.86
+
+Month with the most distinct invoices: 2010-11 (3669)
+  next: 2011-11 (3462), 2010-10 (2965)
