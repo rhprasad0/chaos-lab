@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-exec docker exec -i "${LAB_PROJECT:?LAB_PROJECT names the running lab compose project}-spark-master-1" "$@"
