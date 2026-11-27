@@ -26,10 +26,6 @@ def raw(invoice, stock, quantity, when, price, customer, description="ITEM", cou
     return [invoice, stock, description, quantity, when, price, customer, country]
 
 
-def sale_row(invoice, stock, quantity, when, price, customer):
-    return raw(invoice, stock, quantity, when, price, customer)
-
-
 OVERLAP_SALE = raw("1001", "85123A", 2, at(5, 10), 2.5, 100, "  WHITE  HEART ")
 OVERLAP_TEST = raw("1002", "TEST001", 1, at(5, 10), 1.0, 100)
 DUPLICATE_IN_SECOND = raw("9001", "85123A", 1, at(5, 11, month=1, year=2011), 3.0, 100)
