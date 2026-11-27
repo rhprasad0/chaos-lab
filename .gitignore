@@ -1,0 +1,6 @@
+__pycache__/
+.terraform/
+*.tfstate*
+dist/
+infra/trial-*/emulator_override.tf
+infra/trial-*/emulator.tfvars
