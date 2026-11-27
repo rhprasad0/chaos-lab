@@ -1,7 +1,6 @@
 import re
 from collections import Counter, defaultdict
 from datetime import timedelta
-from decimal import Decimal
 
 from .errors import PipelineError
 
