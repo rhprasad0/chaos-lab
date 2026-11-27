@@ -1,0 +1,4 @@
+openpyxl
+pyarrow
+psycopg[binary]
+boto3
