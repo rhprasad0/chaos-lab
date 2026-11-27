@@ -38,13 +38,13 @@ def run(workbook_path, parquet_path, connect, publish=lambda path: None):
     with step("write"):
         write_parquet(rows, parquet_path)
         publish(parquet_path)
-    with connect() as connection:
-        with connection.transaction():
-            with step("load"):
+    with step("load"):
+        with connect() as connection:
+            with connection.transaction():
                 cursor = connection.cursor()
                 expected = replace_table(cursor, parquet_path)
-            with step("check"):
-                report["checks"] = check_table(cursor, expected)
+                with step("check"):
+                    report["checks"] = check_table(cursor, expected)
     report["loaded_rows"] = expected
     log.info("ETL complete: %s", report)
     return report

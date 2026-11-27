@@ -26,10 +26,10 @@ def _connect():
 
 
 def handler(event, context):
-    s3 = boto3.client("s3")
     workbook_path = "/tmp/online_retail_II.xlsx"
     parquet_path = "/tmp/online_retail_ii.parquet"
     try:
+        s3 = boto3.client("s3")
         s3.download_file(BUCKET, WORKBOOK_KEY, workbook_path)
     except Exception as error:
         reason = " ".join(f"{type(error).__name__}: {error}".split())

@@ -188,6 +188,35 @@ def test_overlap_compares_rows_as_read_before_trimming():
     assert [row[2] for row in kept] == ["CREAM CUPID", "CREAM CUPID"]
 
 
+def test_connection_failure_logs_the_load_step(tmp_path, caplog):
+    workbook = tmp_path / "book.xlsx"
+    build_workbook(workbook, FIRST[:1], [])
+
+    def refuse():
+        raise psycopg.OperationalError("connection refused\nby host")
+
+    with pytest.raises(StepError) as raised:
+        pipeline.run(workbook, tmp_path / "out.parquet", refuse)
+
+    assert raised.value.step == "load"
+    lines = [record.getMessage() for record in caplog.records if record.levelname == "ERROR"]
+    assert len(lines) == 1
+    assert lines[0].startswith("ETL step load failed:") and "connection refused by host" in lines[0]
+
+
+def test_failed_check_logs_the_check_step(tmp_path, connect, monkeypatch, caplog):
+    workbook = tmp_path / "book.xlsx"
+    build_workbook(workbook, FIRST[:1], [])
+    write = pipeline.write_parquet
+    monkeypatch.setattr(pipeline, "write_parquet", lambda rows, path: write(rows + rows, path))
+
+    with pytest.raises(StepError):
+        pipeline.run(workbook, tmp_path / "out.parquet", connect)
+
+    lines = [record.getMessage() for record in caplog.records if record.levelname == "ERROR"]
+    assert len(lines) == 1 and lines[0].startswith("ETL step check failed:")
+
+
 def test_row_that_is_neither_sale_nor_cancellation_fails():
     row = r("x", "C536001", "85123A", "X", 1, "08:00", 1.0, 1)[1]
     with pytest.raises(ValueError, match="neither a sale nor a cancellation"):
