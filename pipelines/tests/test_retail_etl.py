@@ -218,6 +218,8 @@ def test_handler_logs_failed_step_and_raises(tmp_path, monkeypatch, caplog):
     monkeypatch.setenv("DB_NAME", "chaos_lab")
     monkeypatch.setenv("DB_SCHEMA", SCHEMA)
     monkeypatch.setenv("AWS_DEFAULT_REGION", "us-east-1")
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "test")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "test")
     with caplog.at_level(logging.ERROR), pytest.raises(StepError):
         handler({}, None)
     messages = [r.getMessage() for r in caplog.records]
