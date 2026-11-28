@@ -35,8 +35,9 @@ The cleaning rules come from
 Every run is checked by the YAML data contracts in `pipelines/retail_etl/contracts/` (`input` on the parsed
 workbook, `output` on the loaded table before it commits). The parquet is written to `<OUTPUT_KEY>.staging`
 and copied to `OUTPUT_KEY` only after the commit, and each run, failed or not, is one row in
-`retail.etl_runs`. `DB_SCHEMA` (default `retail`) moves the table and ledger to another schema. Alarms
-in `ALARM` reach GitHub as `repository_dispatch` `etl-alarm` events through EventBridge; deploy with
+`retail.etl_runs`. `DB_SCHEMA` (default `retail`) moves the table and ledger to another schema. A failed
+asynchronous run reaches GitHub as a `repository_dispatch` `etl-failure` event, its Lambda failure
+record as the payload, through the function's on-failure destination and EventBridge; deploy with
 `-var github_dispatch_token=...` (a token with Contents read/write) and optionally `-var alarm_email=...`.
 
 Faults are applied by the host at run time and are never committed here.

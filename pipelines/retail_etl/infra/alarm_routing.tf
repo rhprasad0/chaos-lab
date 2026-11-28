@@ -1,7 +1,3 @@
-locals {
-  etl_alarm_arns = [aws_cloudwatch_metric_alarm.errors.arn, aws_cloudwatch_metric_alarm.no_success.arn]
-}
-
 resource "aws_sns_topic_subscription" "email" {
   count     = var.alarm_email == null ? 0 : 1
   topic_arn = aws_sns_topic.alarms.arn
@@ -9,15 +5,14 @@ resource "aws_sns_topic_subscription" "email" {
   endpoint  = var.alarm_email
 }
 
-resource "aws_cloudwatch_event_rule" "alarm" {
-  name        = "${var.name}-alarm"
-  description = "The retail ETL alarms moving into ALARM"
+resource "aws_cloudwatch_event_rule" "failure" {
+  name        = "${var.name}-failure"
+  description = "A failed asynchronous run of the retail ETL, with its error"
 
   event_pattern = jsonencode({
-    source      = ["aws.cloudwatch"]
-    detail-type = ["CloudWatch Alarm State Change"]
-    resources   = local.etl_alarm_arns
-    detail      = { state = { value = ["ALARM"] } }
+    source      = ["lambda"]
+    detail-type = ["Lambda Function Invocation Result - Failure"]
+    detail      = { requestContext = { functionArn = [{ prefix = aws_lambda_function.etl.arn }] } }
   })
 }
 
@@ -78,18 +73,18 @@ resource "aws_sqs_queue_policy" "alarm_dlq" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Sid       = "OnlyTheAlarmRuleMaySend"
+      Sid       = "OnlyTheFailureRuleMaySend"
       Effect    = "Allow"
       Principal = { Service = "events.amazonaws.com" }
       Action    = "sqs:SendMessage"
       Resource  = aws_sqs_queue.alarm_dlq.arn
-      Condition = { ArnEquals = { "aws:SourceArn" = aws_cloudwatch_event_rule.alarm.arn } }
+      Condition = { ArnEquals = { "aws:SourceArn" = aws_cloudwatch_event_rule.failure.arn } }
     }]
   })
 }
 
 resource "aws_cloudwatch_event_target" "github" {
-  rule     = aws_cloudwatch_event_rule.alarm.name
+  rule     = aws_cloudwatch_event_rule.failure.name
   arn      = aws_cloudwatch_event_api_destination.github.arn
   role_arn = aws_iam_role.alarm_dispatch.arn
 
@@ -101,15 +96,8 @@ resource "aws_cloudwatch_event_target" "github" {
   }
 
   input_transformer {
-    input_paths = {
-      alarm   = "$.detail.alarmName"
-      state   = "$.detail.state.value"
-      reason  = "$.detail.state.reason"
-      time    = "$.time"
-      account = "$.account"
-      region  = "$.region"
-    }
-    input_template = "{\"event_type\":\"etl-alarm\",\"client_payload\":{\"alarm\":\"<alarm>\",\"state\":\"<state>\",\"reason\":\"<reason>\",\"time\":\"<time>\",\"account\":\"<account>\",\"region\":\"<region>\"}}"
+    input_paths    = { detail = "$.detail" }
+    input_template = "{\"event_type\":\"etl-failure\",\"client_payload\":<detail>}"
   }
 
   dead_letter_config {
@@ -121,10 +109,10 @@ resource "aws_cloudwatch_event_target" "github" {
 
 resource "aws_cloudwatch_metric_alarm" "dispatch_failed" {
   alarm_name          = "${var.name}-dispatch-failed"
-  alarm_description   = "EventBridge could not deliver an ETL alarm to GitHub (rule ${aws_cloudwatch_event_rule.alarm.name}). Check the API destination ${aws_cloudwatch_event_api_destination.github.name} and the github_dispatch_token."
+  alarm_description   = "EventBridge could not deliver an ETL failure to GitHub (rule ${aws_cloudwatch_event_rule.failure.name}). Check the API destination ${aws_cloudwatch_event_api_destination.github.name} and the github_dispatch_token."
   namespace           = "AWS/Events"
   metric_name         = "FailedInvocations"
-  dimensions          = { RuleName = aws_cloudwatch_event_rule.alarm.name }
+  dimensions          = { RuleName = aws_cloudwatch_event_rule.failure.name }
   statistic           = "Sum"
   period              = 300
   evaluation_periods  = 1
@@ -136,7 +124,7 @@ resource "aws_cloudwatch_metric_alarm" "dispatch_failed" {
 
 resource "aws_cloudwatch_metric_alarm" "dispatch_dead_letters" {
   alarm_name          = "${var.name}-dispatch-dead-letters"
-  alarm_description   = "An ETL alarm event is waiting in the dead-letter queue ${aws_sqs_queue.alarm_dlq.name}: GitHub never received it."
+  alarm_description   = "An ETL failure event is waiting in the dead-letter queue ${aws_sqs_queue.alarm_dlq.name}: GitHub never received it."
   namespace           = "AWS/SQS"
   metric_name         = "ApproximateNumberOfMessagesVisible"
   dimensions          = { QueueName = aws_sqs_queue.alarm_dlq.name }
