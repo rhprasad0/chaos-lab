@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+pipelines/retail_etl/build/
+.terraform/
+.terraform.lock.hcl
+*.tfstate*
