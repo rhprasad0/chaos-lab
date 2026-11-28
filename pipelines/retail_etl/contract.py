@@ -47,10 +47,15 @@ def check_input(frame, contract):
                 problems.append(violation("sheet_present", "sheet", 0, [sheet]))
     else:
         problems.append(violation("sheet_present", "sheet", len(frame), contract["sheets"]))
+    listed = {column["name"] for column in contract["columns"]} | {"sheet"}
+    unlisted = [name for name in frame.columns if name not in listed]
     for column in contract["columns"]:
         name = column["name"]
         if name not in frame:
-            problems.append(violation("column_present", name, len(frame), []))
+            problem = violation("column_present", name, len(frame), [])
+            if unlisted:
+                problem += f" unlisted_columns={unlisted}"
+            problems.append(problem)
             continue
         values = frame[name]
         filled = values.dropna()

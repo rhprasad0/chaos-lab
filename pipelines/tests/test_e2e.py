@@ -135,6 +135,16 @@ def test_a_renamed_column_fails_the_input_contract_and_keeps_the_previous_output
     assert "column=Price" in error
 
 
+def test_a_renamed_column_failure_names_the_unlisted_column(lab, renamed_price):
+    seed_previous_run(lab)
+    upload(lab, renamed_price)
+    with pytest.raises(contract.ContractError, match=r"column=Price rows=\d+ samples=\[\] unlisted_columns=\['UnitPrice'\]"):
+        invoke("renamed-unlisted")
+    [(status, step, error, *_)] = ledger()
+    assert (status, step) == ("failed", "input_contract")
+    assert "unlisted_columns=['UnitPrice']" in error
+
+
 def test_a_failed_output_contract_keeps_the_previous_outputs(lab, workbook, monkeypatch):
     load = contract.load
 
