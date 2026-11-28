@@ -1,6 +1,6 @@
 import hashlib
 import os
-import shutil
+import re
 import subprocess
 import types
 import urllib.request
@@ -64,7 +64,8 @@ def reference(tmp_path_factory):
 
 @pytest.fixture
 def lab(reference, db_schema, monkeypatch, tmp_path):
-    shutil.copy(reference / "config.toml", tmp_path / "config.toml")
+    config = (reference / "config.toml").read_text()
+    (tmp_path / "config.toml").write_text(re.sub(r"(?m)^sha256 = .*$", 'sha256 = ""', config))
     monkeypatch.syspath_prepend(str(reference))
     monkeypatch.setattr(etl, "HERE", tmp_path)
     monkeypatch.setattr(etl, "database", lambda: psycopg.connect(""))
