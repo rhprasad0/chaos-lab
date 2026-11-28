@@ -12,3 +12,30 @@ The lab is being rebuilt on a real development PostgreSQL instance; the plan is
 
 `./verify.sh` is what CI runs: the protected `tests/` and the pipelines' own `pipelines/tests/`.
 The factory may not change `tests/`, `bin/`, `verify.sh` or `.github/`.
+
+## Retail ETL
+
+`pipelines/retail_etl/` is the daily ETL that runs live in the development account: Lambda
+`chaos-lab-retail-etl` reads `s3://chaos-lab-903859731897/online-retail-ii/online_retail_II.xlsx` at
+06:00 UTC, writes `online-retail-ii/clean/online_retail_ii.parquet` and replaces
+`chaos_lab.retail.transactions`. Two alarms (`-errors`, `-no-success`) publish to the
+`chaos-lab-retail-etl-alarms` topic; their descriptions say where to start looking.
+
+The cleaning rules come from
+[adwitiyashukla/online-retail-data-profiling-and-analysis](https://github.com/adwitiyashukla/online-retail-data-profiling-and-analysis)
+(MIT), fetched at a pinned commit by `package.sh`.
+
+- Build: `pipelines/retail_etl/package.sh` (needs `uv`).
+- Test: set `CHAOS_LAB_WORKBOOK` to the workbook and `PG*` to a disposable database, then run
+  `./verify.sh` after building. Without them the tests skip.
+- Deploy (by hand, never by the factory): in `pipelines/retail_etl/infra`,
+  `terraform init -backend-config=backend.development.hcl` then
+  `terraform apply -var-file=development.tfvars`.
+- Emulator: `pipelines/retail_etl/infra/emulator/apply.sh http://localhost:5000` applies the same
+  stack to moto.
+
+Faults are applied by the host at run time and are never committed here.
+
+## Journal
+
+Experiment results, one entry per day, in [`journal/`](journal/).
