@@ -3,7 +3,8 @@ data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 locals {
-  bucket_arn = "arn:${data.aws_partition.current.partition}:s3:::${var.bucket}"
+  bucket_arn      = "arn:${data.aws_partition.current.partition}:s3:::${var.bucket}"
+  default_bus_arn = "arn:${data.aws_partition.current.partition}:events:${var.region}:${data.aws_caller_identity.current.account_id}:event-bus/default"
 }
 
 resource "aws_security_group" "etl" {
@@ -100,6 +101,11 @@ data "aws_iam_policy_document" "etl" {
     resources = ["arn:${data.aws_partition.current.partition}:rds-db:${var.region}:${data.aws_caller_identity.current.account_id}:dbuser:${var.db_resource_id}/${var.db_user}"]
   }
   statement {
+    sid       = "ReportFailures"
+    actions   = ["events:PutEvents"]
+    resources = [local.default_bus_arn]
+  }
+  statement {
     sid       = "WriteLogs"
     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
     resources = ["${aws_cloudwatch_log_group.etl.arn}:*"]
@@ -152,6 +158,12 @@ resource "aws_lambda_function" "etl" {
 resource "aws_lambda_function_event_invoke_config" "etl" {
   function_name          = aws_lambda_function.etl.function_name
   maximum_retry_attempts = 0
+
+  destination_config {
+    on_failure {
+      destination = local.default_bus_arn
+    }
+  }
 }
 
 resource "aws_cloudwatch_event_rule" "daily" {

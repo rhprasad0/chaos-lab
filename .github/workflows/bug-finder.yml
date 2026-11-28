@@ -1,0 +1,55 @@
+name: bug-finder
+permissions:
+  contents: read
+
+on:
+  repository_dispatch:
+    types: [etl-failure]
+
+concurrency:
+  group: bug-finder
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    environment: factory
+    timeout-minutes: 50
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+      ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+      ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
+      ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
+      FACTORY_APP_CLIENT_ID: ${{ vars.FACTORY_APP_CLIENT_ID }}
+      FACTORY_GITHUB_LOGIN: ${{ vars.FACTORY_GITHUB_LOGIN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: rhprasad0/nova-toll-budget-agent
+          ref: main
+          path: tollchat
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          version: "0.12.5"
+          checksum: "68a509da24b06b4223a1c0175fb5eb5bc79342b76cbeff0cfe51ac3f5b17b6b2"
+          python-version: "3.13"
+      - name: Read the lock from the state branch
+        working-directory: tollchat
+        run: |
+          git fetch --quiet --depth=1 origin factory-state
+          git show FETCH_HEAD:claude-lock.json >factory/claude-lock.json
+      - name: Save the failure record
+        env:
+          FAILURE: ${{ toJson(github.event.client_payload) }}
+        run: printf '%s' "$FAILURE" >"$RUNNER_TEMP/failure.json"
+      - name: Triage
+        working-directory: tollchat
+        env:
+          FACTORY_APP_PRIVATE_KEY: ${{ secrets.FACTORY_APP_PRIVATE_KEY }}
+        run: uv run --locked --script factory/dispatch.py --repo "$GH_REPO" triage --failure "$RUNNER_TEMP/failure.json"
