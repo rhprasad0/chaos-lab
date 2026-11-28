@@ -20,6 +20,7 @@ provider "aws" {
     logs       = var.emulator_url
     s3         = var.emulator_url
     sns        = var.emulator_url
+    sqs        = var.emulator_url
     sts        = var.emulator_url
   }
 }

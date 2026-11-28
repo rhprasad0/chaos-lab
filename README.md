@@ -32,6 +32,13 @@ The cleaning rules come from
 - Emulator: `pipelines/retail_etl/infra/emulator/apply.sh http://localhost:5000` applies the same
   stack to moto.
 
+Every run is checked by the YAML data contracts in `pipelines/retail_etl/contracts/` (`input` on the parsed
+workbook, `output` on the loaded table before it commits). The parquet is written to `<OUTPUT_KEY>.staging`
+and copied to `OUTPUT_KEY` only after the commit, and each run, failed or not, is one row in
+`retail.etl_runs`. `DB_SCHEMA` (default `retail`) moves the table and ledger to another schema. Alarms
+in `ALARM` reach GitHub as `repository_dispatch` `etl-alarm` events through EventBridge; deploy with
+`-var github_dispatch_token=...` (a token with Contents read/write) and optionally `-var alarm_email=...`.
+
 Faults are applied by the host at run time and are never committed here.
 
 ## Journal

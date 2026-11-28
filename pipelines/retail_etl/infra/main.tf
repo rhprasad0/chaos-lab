@@ -90,6 +90,11 @@ data "aws_iam_policy_document" "etl" {
     resources = ["${local.bucket_arn}/${var.output_key}"]
   }
   statement {
+    sid       = "StageParquet"
+    actions   = ["s3:PutObject", "s3:GetObject"]
+    resources = ["${local.bucket_arn}/${var.output_key}.staging"]
+  }
+  statement {
     sid       = "ConnectDatabase"
     actions   = ["rds-db:connect"]
     resources = ["arn:${data.aws_partition.current.partition}:rds-db:${var.region}:${data.aws_caller_identity.current.account_id}:dbuser:${var.db_resource_id}/${var.db_user}"]
