@@ -1,0 +1,15 @@
+sheets:
+  - Year 2009-2010
+  - Year 2010-2011
+columns:
+  - {name: Invoice, type: text, nullable: false}
+  - {name: StockCode, type: text, nullable: false}
+  - {name: Description, type: text, nullable: true}
+  - {name: Quantity, type: integer, nullable: false}
+  - {name: InvoiceDate, type: timestamp, nullable: false}
+  - {name: Price, type: decimal, nullable: false}
+  - {name: Customer ID, type: integer, nullable: true}
+  - {name: Country, type: text, nullable: false}
+ranges:
+  - {column: InvoiceDate, min: 2009-12-01, max: 2011-12-10}
+row_count: {expected: 1067371, tolerance: 0.02}

@@ -1,0 +1,14 @@
+table: transactions
+columns:
+  - {name: invoice, type: text, nullable: false}
+  - {name: stock_code, type: text, nullable: false}
+  - {name: description, type: text, nullable: true}
+  - {name: quantity, type: integer, nullable: false}
+  - {name: invoice_date, type: timestamp without time zone, nullable: false}
+  - {name: price, type: "numeric(12,3)", nullable: false}
+  - {name: customer_id, type: integer, nullable: true}
+  - {name: country, type: text, nullable: true}
+  - {name: is_cancellation, type: boolean, nullable: true}
+row_count: {expected: 1018816, tolerance: 0.01}
+sum: {expression: quantity * price, expected: 18927435.65, tolerance: 0.01}
+cancellation: {column: is_cancellation, key: invoice, prefix: C}
