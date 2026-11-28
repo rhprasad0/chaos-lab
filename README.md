@@ -26,8 +26,6 @@ The cleaning rules come from
 (MIT), fetched at a pinned commit by `package.sh`.
 
 - Build: `pipelines/retail_etl/package.sh` (needs `uv`).
-- Test: set `CHAOS_LAB_WORKBOOK` to the workbook and `PG*` to a disposable database, then run
-  `./verify.sh` after building. Without them the tests skip.
 - Deploy (by hand, never by the factory): in `pipelines/retail_etl/infra`,
   `terraform init -backend-config=backend.development.hcl` then
   `terraform apply -var-file=development.tfvars`.
