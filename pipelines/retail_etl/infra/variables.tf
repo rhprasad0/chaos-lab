@@ -76,3 +76,15 @@ variable "schedule" {
   type    = string
   default = "cron(0 6 * * ? *)"
 }
+
+variable "github_dispatch_token" {
+  type        = string
+  sensitive   = true
+  description = "Fine-grained GitHub token with Contents read/write on rhprasad0/chaos-lab; EventBridge sends it as the Authorization header of the repository_dispatch call."
+}
+
+variable "alarm_email" {
+  type        = string
+  default     = null
+  description = "Address to subscribe to the alarm topic; no subscription when null."
+}

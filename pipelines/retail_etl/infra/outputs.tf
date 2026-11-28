@@ -7,5 +7,10 @@ output "alarm_topic_arn" {
 }
 
 output "alarm_names" {
-  value = [aws_cloudwatch_metric_alarm.errors.alarm_name, aws_cloudwatch_metric_alarm.no_success.alarm_name]
+  value = [
+    aws_cloudwatch_metric_alarm.errors.alarm_name,
+    aws_cloudwatch_metric_alarm.no_success.alarm_name,
+    aws_cloudwatch_metric_alarm.dispatch_failed.alarm_name,
+    aws_cloudwatch_metric_alarm.dispatch_dead_letters.alarm_name,
+  ]
 }
